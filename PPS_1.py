@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import altair as alt
+import math
 
 # ---------- 1. Scale definitions ---------- #
 
@@ -86,6 +87,12 @@ SD_AUTHV   = 0.530544
 MEAN_AUTHN = 2.533141
 SD_AUTHN   = 0.730939
 
+def z_to_percentile(z: float) -> float:
+    """Convert z-score to percentile (0-100) assuming normal distribution."""
+    cdf = 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+    return 100.0 * cdf
+
+
 # ---------- 5. Streamlit UI ---------- #
 
 st.title("Pet Parenting Style Prototype")
@@ -153,26 +160,37 @@ if st.button("Compute Style"):
         z_authv = (S_authv - MEAN_AUTHV) / SD_AUTHV
         z_authn = (S_authn - MEAN_AUTHN) / SD_AUTHN
 
+        # percentiles
+        p_perm  = z_to_percentile(z_perm)
+        p_authv = z_to_percentile(z_authv)
+        p_authn = z_to_percentile(z_authn)
+
         st.subheader(f"Most probable parenting style: **{final_style}**")
 
-        st.markdown("**Raw scale means:**")
+        st.markdown("**Raw scale means (1–5):**")
         st.write(f"- Permissive: {S_perm:.2f}")
         st.write(f"- Authoritative: {S_authv:.2f}")
         st.write(f"- Authoritarian: {S_authn:.2f}")
 
-        st.markdown("**Z-scores (relative to 953-dog normative sample):**")
-        st.write(f"- Permissive z: {z_perm:.2f}")
-        st.write(f"- Authoritative z: {z_authv:.2f}")
-        st.write(f"- Authoritarian z: {z_authn:.2f}")
+        st.markdown("**Z-scores and percentiles (vs. 953-dog sample):**")
+        st.write(
+            f"- Permissive: z = {z_perm:.2f}, percentile ≈ {p_perm:.0f}th"
+        )
+        st.write(
+            f"- Authoritative: z = {z_authv:.2f}, percentile ≈ {p_authv:.0f}th"
+        )
+        st.write(
+            f"- Authoritarian: z = {z_authn:.2f}, percentile ≈ {p_authn:.0f}th"
+        )
 
         # ---------- 6. Графики: левая/правая колонка ---------- #
 
         col_left, col_right = st.columns(2)
 
-        # ------- LEFT: Normative z-score profile ------- #
-        df_z = pd.DataFrame({
+        # ------- LEFT: Normative percentile profile ------- #
+        df_pct = pd.DataFrame({
             "Style": ["Authoritarian", "Authoritative", "Permissive"],
-            "Z":     [z_authn, z_authv, z_perm],
+            "Percentile": [p_authn, p_authv, p_perm],
         })
 
         color_scale = alt.Scale(
@@ -180,39 +198,23 @@ if st.button("Compute Style"):
             range=["#FF4B4B", "#2ECC71", "#F1C40F"],  # red, green, yellow
         )
 
-        # динамический диапазон по текущим z
-        min_z = min(z_authn, z_authv, z_perm)
-        max_z = max(z_authn, z_authv, z_perm)
-        pad = 0.3  # небольшой запас сверху и снизу
-        y_min = min_z - pad
-        y_max = max_z + pad
-
-        # если диапазон слишком узкий, делаем хотя бы ~1.5 по высоте
-        if y_max - y_min < 1.5:
-            center = 0.5 * (y_max + y_min)
-            y_min = center - 0.75
-            y_max = center + 0.75
-
-        bar_z = (
-            alt.Chart(df_z)
+        bar_pct = (
+            alt.Chart(df_pct)
             .mark_bar()
             .encode(
                 x=alt.X("Style:N", sort=STYLE_ORDER),
-                y=alt.Y("Z:Q", scale=alt.Scale(domain=[y_min, y_max])),
+                y=alt.Y("Percentile:Q", scale=alt.Scale(domain=[0, 100])),
                 color=alt.Color("Style:N", scale=color_scale, legend=None),
-                tooltip=["Style", alt.Tooltip("Z:Q", format=".2f")],
+                tooltip=[
+                    "Style",
+                    alt.Tooltip("Percentile:Q", format=".0f"),
+                ],
             )
         )
 
-        zero_line = (
-            alt.Chart(pd.DataFrame({"y": [0]}))
-            .mark_rule(strokeDash=[4, 4])
-            .encode(y="y:Q")
-        )
-
         with col_left:
-            st.markdown("**Normative profile (z-scores):**")
-            st.altair_chart(bar_z + zero_line, use_container_width=True)
+            st.markdown("**Normative profile (percentiles):**")
+            st.altair_chart(bar_pct, use_container_width=True)
 
         # ------- RIGHT: model-based similarity (donut) ------- #
         # чем меньше effective distance, тем больше similarity
