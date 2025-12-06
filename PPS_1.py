@@ -64,6 +64,7 @@ ITEM_TEXTS = {
 
 # ---------- 3. Lauren's centroids & bias ---------- #
 
+# Each centroid = [Permissive, Authoritative, Authoritarian]
 CENTROIDS = {
     "Authoritarian": np.array([1.864583, 4.083333, 3.156250]),
     "Authoritative": np.array([2.125000, 4.387821, 2.285256]),
@@ -130,7 +131,7 @@ if st.button("Compute Style"):
         S_authv = mean_for(AUTHORITATIVE_ITEMS)
         S_authn = mean_for(AUTHORITARIAN_ITEMS)
 
-        profile = np.array([S_perm, S_authv, S_authn])
+        profile = np.array([S_perm, S_authv, S_authn])  # [Perm, Authv, Authn]
 
         # distances to centroids
         dists = {}
@@ -138,6 +139,7 @@ if st.button("Compute Style"):
             centroid = CENTROIDS[style]
             dists[style] = np.linalg.norm(profile - centroid)
 
+        # apply bias factors
         eff_dists = {
             "Permissive":    BETA_PERM  * dists["Permissive"],
             "Authoritative": BETA_AUTHV * dists["Authoritative"],
@@ -163,7 +165,11 @@ if st.button("Compute Style"):
         st.write(f"- Authoritative z: {z_authv:.2f}")
         st.write(f"- Authoritarian z: {z_authn:.2f}")
 
-        # ------- Z-score bar chart with mean line ------- #
+        # ---------- 6. Графики: левая/правая колонка ---------- #
+
+        col_left, col_right = st.columns(2)
+
+        # ------- LEFT: Normative z-score profile ------- #
         df_z = pd.DataFrame({
             "Style": ["Authoritarian", "Authoritative", "Permissive"],
             "Z":     [z_authn, z_authv, z_perm],
@@ -174,14 +180,27 @@ if st.button("Compute Style"):
             range=["#FF4B4B", "#2ECC71", "#F1C40F"],  # red, green, yellow
         )
 
+        # динамический диапазон по текущим z
+        min_z = min(z_authn, z_authv, z_perm)
+        max_z = max(z_authn, z_authv, z_perm)
+        pad = 0.3  # небольшой запас сверху и снизу
+        y_min = min_z - pad
+        y_max = max_z + pad
+
+        # если диапазон слишком узкий, делаем хотя бы ~1.5 по высоте
+        if y_max - y_min < 1.5:
+            center = 0.5 * (y_max + y_min)
+            y_min = center - 0.75
+            y_max = center + 0.75
+
         bar_z = (
             alt.Chart(df_z)
             .mark_bar()
             .encode(
                 x=alt.X("Style:N", sort=STYLE_ORDER),
-                y=alt.Y("Z:Q", scale=alt.Scale(domain=[-3, 3])),
+                y=alt.Y("Z:Q", scale=alt.Scale(domain=[y_min, y_max])),
                 color=alt.Color("Style:N", scale=color_scale, legend=None),
-                tooltip=["Style", "Z"],
+                tooltip=["Style", alt.Tooltip("Z:Q", format=".2f")],
             )
         )
 
@@ -191,24 +210,35 @@ if st.button("Compute Style"):
             .encode(y="y:Q")
         )
 
-        st.markdown("**Profile (z-scores):**")
-        st.altair_chart(bar_z + zero_line, use_container_width=True)
+        with col_left:
+            st.markdown("**Normative profile (z-scores):**")
+            st.altair_chart(bar_z + zero_line, use_container_width=True)
 
-        # ------- Donut chart for relative raw means ------- #
-        df_raw = pd.DataFrame({
-            "Style": ["Authoritarian", "Authoritative", "Permissive"],
-            "Score": [S_authn, S_authv, S_perm],
+        # ------- RIGHT: model-based similarity (donut) ------- #
+        # чем меньше effective distance, тем больше similarity
+        sim_scores = {
+            style: float(np.exp(-eff_dists[style]))
+            for style in STYLE_ORDER
+        }
+
+        df_sim = pd.DataFrame({
+            "Style": list(sim_scores.keys()),
+            "Similarity": list(sim_scores.values()),
         })
 
         donut = (
-            alt.Chart(df_raw)
+            alt.Chart(df_sim)
             .mark_arc(innerRadius=50)
             .encode(
-                theta="Score:Q",
+                theta="Similarity:Q",
                 color=alt.Color("Style:N", scale=color_scale),
-                tooltip=["Style", "Score"],
+                tooltip=[
+                    "Style",
+                    alt.Tooltip("Similarity:Q", format=".3f"),
+                ],
             )
         )
 
-        st.markdown("**Relative style profile (donut chart, raw means):**")
-        st.altair_chart(donut, use_container_width=True)
+        with col_right:
+            st.markdown("**Model-based parenting style:**")
+            st.altair_chart(donut, use_container_width=True)
