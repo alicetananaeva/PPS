@@ -1,3 +1,37 @@
+"""
+Pet Parenting Style Prototype (Streamlit)
+
+This script implements a small online prototype of the pet parenting style
+questionnaire based on Lauren Brubaker’s 36-item scale.
+
+What it does:
+- Shows 36 items (Authoritative, Authoritarian, Permissive; 5-point Likert).
+- Computes three scale means for each owner.
+- Classifies the owner into the most probable parenting style using
+  Lauren-based centroids and bias factors (supervised nearest centroid model).
+- Uses normative data from 953 dogs to compute z-scores and percentiles
+  for each scale.
+- Displays:
+    * Most probable parenting style,
+    * Raw means,
+    * Z-scores and percentiles,
+    * A bar chart of percentiles,
+    * A donut chart showing model-based style similarity.
+
+How to run locally:
+1) Install dependencies:
+       pip install streamlit numpy pandas altair
+2) From the folder with this file, run:
+       streamlit run PPS_1.py
+3) Open the URL shown in the terminal (usually http://localhost:8501).
+
+Notes:
+- All centroids, bias factors and normative statistics are embedded in the code;
+  no external data files are needed at runtime.
+- The app does not store responses on an external server; answers live only
+  for the current session and are discarded when the page is closed.
+"""
+
 import streamlit as st
 import numpy as np
 import pandas as pd
