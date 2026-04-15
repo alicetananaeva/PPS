@@ -17,7 +17,7 @@ The underlying questionnaire is based on the 36-item Pet Parenting Style scale d
 
 - Presents **36 five-point Likert** items (frequency: *Never* … *Always*) to dog guardians.
 - Computes **three subscale means** (12 items each): Permissive, Authoritative, Authoritarian.
-- Assigns a **most probable parenting style** by Euclidean distance from the respondent’s \([P, A_{auth}, A_{authn}]\) profile to three fixed **centroids**, after per-style **bias multipliers** (\(\beta_{perm}\), \(\beta_{authv}\), \(\beta_{authn}\)).
+- Assigns a **most probable parenting style** by Euclidean distance from the respondent’s profile and three fixed centroids.
 - Reports **z-scores and approximate percentiles** for each subscale using normative **mean and SD from N = 953** (assumes a normal CDF for percentiles).
 - Shows **Altair** visuals: bar chart of percentiles and a **donut** of model-based similarity (\(\exp(-d_{eff})\) per style).
 
