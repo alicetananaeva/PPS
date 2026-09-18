@@ -28,7 +28,7 @@ async function saveCompletion(request, env) {
   } catch {
     return json({ error: "Invalid JSON." }, 400);
   }
-  if (payload?.classKey !== "monique") return json({ error: "Unknown class." }, 400);
+  if (payload?.classKey !== "drudell") return json({ error: "Unknown class." }, 400);
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const code = completionCode();
     try {

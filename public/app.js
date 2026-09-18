@@ -84,7 +84,7 @@ function renderResults(result) {
 }
 
 async function showCompletionCode() {
-  if (classKey !== "monique") return;
+  if (classKey !== "drudell") return;
   const card = document.getElementById("completion-card");
   const code = document.getElementById("completion-code");
   card.classList.remove("hidden");

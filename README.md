@@ -8,7 +8,7 @@ The questionnaire is based on the 36-item Pet Parenting Style scale developed in
 
 [Open PPS on Cloudflare](https://pps.dogperspective.com/)
 
-Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=monique). After completion, this link displays a random confirmation code. Codes are stored without questionnaire answers or personal information in the separate `completion_codes` table.
+Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=drudell). After completion, this link displays a random confirmation code. Codes are stored without questionnaire answers or personal information in the separate `completion_codes` table.
 
 ## Current architecture
 
