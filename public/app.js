@@ -153,6 +153,17 @@ document.getElementById("question-form").addEventListener("submit", (event) => {
   }
 });
 
+document.addEventListener("keydown", (event) => {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+  if (document.getElementById("question-screen").classList.contains("hidden")) return;
+  if (!["1", "2", "3", "4", "5"].includes(event.key)) return;
+  const selected = document.querySelector(`input[name="answer"][value="${event.key}"]`);
+  if (!selected) return;
+  selected.checked = true;
+  selected.focus();
+  document.getElementById("question-error").classList.add("hidden");
+});
+
 document.getElementById("back-button").addEventListener("click", () => {
   if (currentIndex > 0) {
     currentIndex -= 1;
