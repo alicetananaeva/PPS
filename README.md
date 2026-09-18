@@ -6,7 +6,7 @@ The questionnaire is based on the 36-item Pet Parenting Style scale developed in
 
 ## Live app
 
-[Open PPS on Cloudflare](https://pps-questionnaire.alicetananaeva.workers.dev/)
+[Open PPS on Cloudflare](https://pps.dogperspective.com/)
 
 ## Current architecture
 
