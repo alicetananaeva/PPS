@@ -16,7 +16,6 @@
       <span class="brand-mark" aria-hidden="true">P</span>
       <span>Pet Parenting Style</span>
     </a>
-    <span class="research-label">Research-based questionnaire</span>
   </header>
 
   <main id="app" tabindex="-1">
@@ -69,10 +68,27 @@
     <section id="result-screen" class="screen hidden" aria-labelledby="result-heading" tabindex="-1">
       <div class="result-hero">
         <div class="eyebrow">Your profile</div>
-        <h1 id="result-heading">Most probable style: <span id="result-style"></span></h1>
-        <p>Your profile reflects relative patterns across three dimensions. It is descriptive, not a judgment or diagnosis.</p>
+        <h1 id="result-heading">Your parenting style: <span id="result-style"></span></h1>
       </div>
       <div id="save-status" class="status hidden" role="status"></div>
+      <div id="completion-card" class="completion-card hidden" role="status">
+        <div><strong>Class completion code</strong><p>Send this code to your instructor to confirm that you completed the questionnaire. It is stored separately from your questionnaire answers.</p></div>
+        <code id="completion-code"></code>
+      </div>
+      <section class="profile-summary" aria-labelledby="interpretation-title">
+        <article class="interpretation-card">
+          <h2 id="interpretation-title">What this style may look like</h2>
+          <p id="result-interpretation"></p>
+        </article>
+        <article class="profile-chart-card">
+          <div>
+            <h2>Your parenting style profile</h2>
+            <p class="card-note">The chart below shows how strongly your answers align with each of the three parenting styles.</p>
+            <div id="similarity-legend" class="legend"></div>
+          </div>
+          <div id="similarity-donut" class="donut" role="img" aria-label="Style similarity chart"></div>
+        </article>
+      </section>
       <details class="details">
         <summary>View detailed scores and statistics</summary>
         <p class="card-note">These measures describe the same profile in different ways. They are provided for detail and are not additional or competing results.</p>
@@ -87,24 +103,19 @@
             <p class="card-note">Compared with the 953-dog reference sample</p>
             <div id="percentile-chart" class="bar-chart"></div>
           </article>
-          <article class="result-card similarity-card">
-            <div>
-              <h2>Model-based similarity</h2>
-              <p class="card-note">Relative closeness to each profile centroid</p>
-              <div id="similarity-legend" class="legend"></div>
-            </div>
-            <div id="similarity-donut" class="donut" role="img" aria-label="Style similarity chart"></div>
-          </article>
         </div>
         <div id="stat-details"></div>
       </details>
+      <div class="credit">
+        <p><a href="https://thehumananimalbond.com/" target="_blank" rel="noopener">Human–Animal Interaction Lab</a></p>
+        <p><a href="https://dogperspective.com" target="_blank" rel="noopener">Learn more or collaborate →</a></p>
+      </div>
       <button id="restart-button" class="button secondary">Start over</button>
     </section>
   </main>
 
   <footer>
-    <p>Pet Parenting Style questionnaire · Human–Animal Interaction research</p>
-    <p>Implementation maintained by Alisa Tananaeva</p>
+    <p>Pet Parenting Style</p>
   </footer>
   <script type="module" src="/app.js"></script>
 </body>

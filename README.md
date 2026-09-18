@@ -8,6 +8,8 @@ The questionnaire is based on the 36-item Pet Parenting Style scale developed in
 
 [Open PPS on Cloudflare](https://pps.dogperspective.com/)
 
+Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=monique). After completion, this link displays a random confirmation code. Codes are stored without questionnaire answers or personal information in the separate `completion_codes` table.
+
 ## Current architecture
 
 - **Interface:** accessible vanilla HTML, CSS, and JavaScript served by Cloudflare Workers Static Assets
@@ -29,7 +31,7 @@ No always-on server is required, so this version does not depend on Streamlit up
 
 ## Data storage
 
-The `pps_sessions` D1 table contains a random session ID, submission time, app version, the 36 answers, calculated scale means, profile classification, z-scores, percentiles, and effective distances. The app does not request names, email addresses, contact information, or human demographics.
+The `pps_sessions` D1 table contains a random session ID, submission time, app version, the 36 answers, calculated scale means, profile classification, z-scores, percentiles, and effective distances. The app does not request names, email addresses, contact information, or human demographics. Class confirmation codes are stored separately in `completion_codes` and cannot be linked to questionnaire responses.
 
 See [DATA_PRIVACY.md](DATA_PRIVACY.md) for details.
 

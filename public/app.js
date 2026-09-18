@@ -3,11 +3,20 @@ import { APP_VERSION, ITEM_LIST, ITEM_TEXTS, LIKERT_LABELS, calculatePps } from 
 const screens = [...document.querySelectorAll(".screen")];
 const answers = {};
 let currentIndex = 0;
+let completionCodePromise = null;
+
+const classKey = new URLSearchParams(window.location.search).get("class");
 
 const colors = {
   Authoritarian: "#cf664f",
   Authoritative: "#155f52",
   Permissive: "#d5a633",
+};
+
+const STYLE_INTERPRETATIONS = {
+  Authoritative: "Your parenting style is closest to the Authoritative classification. This style typically reflects a combination of warmth, attention to the pet's emotional state, and fair, consistent guidance. Caregivers with this style tend to consider their pet's feelings and needs, spend time with their pet, show patience, and at the same time maintain structure in everyday interactions. Pets of authoritative caregivers often benefit from this caregiving style, showing higher rates of secure attachment, sociability, success in problem-solving tasks, and are typically more resilient to stress.",
+  Authoritarian: "Your parenting style is closest to the Authoritarian classification. This style often suggests a greater emphasis on control, directiveness, and expectation of obedience. Caregivers with this style are more likely to set strict rules and expect that they be followed. One strength of this approach may be clarity and structure. However, in research, authoritarian parenting has also been associated with higher stress in pets, lower rates of secure attachment, and in some cases suboptimal problem solving and learning outcomes, when compared to authoritative style caregiving. Ways to help your pet reach it's full potential: Paying increased attention to your pet's emotional state and using a more flexible approach when they appear hesitant, frustrated or confused can be helpful; consider if a pet might not be following certain rules due to lack of understanding or other environmental or health related challenges, instead of disobedience. Try focusing on reinforcing small steps towards more desirable behaviors and avoid scolding or physical corrections when possible. These small steps may help improve your pet's welfare, learning, as well as the strength and security of your relationship.",
+  Permissive: "Your parenting style is closest to the Permissive classification. This style typically reflects a warm and caring attitude toward the pet, but with comparatively less consistency and structure. Caregivers with this style often try to avoid being harsh and may feel unsure about how best to respond to unwanted behavior. Clearer boundaries and greater predictability, for example, making sure that 'no' always means 'no,' 'yes' always means 'yes,' and keeping routines more consistent, could improve your pet's learning, strengthen your attachment, and help reduce vulnerability to stress.",
 };
 
 function showScreen(id) {
@@ -52,6 +61,7 @@ function createBarChart(targetId, values, max, suffix, decimals = 0) {
 
 function renderResults(result) {
   document.getElementById("result-style").textContent = result.finalStyle;
+  document.getElementById("result-interpretation").textContent = STYLE_INTERPRETATIONS[result.finalStyle];
   createBarChart("means-chart", result.means, 5, "", 2);
   createBarChart("percentile-chart", result.percentiles, 100, "%", 0);
 
@@ -71,6 +81,29 @@ function renderResults(result) {
   `).join("");
 
   document.getElementById("stat-details").innerHTML = `<table><thead><tr><th>Dimension</th><th>Mean</th><th>z-score</th><th>Percentile</th></tr></thead><tbody>${order.map((style) => `<tr><td>${style}</td><td>${result.means[style].toFixed(2)}</td><td>${result.zScores[style].toFixed(2)}</td><td>${result.percentiles[style].toFixed(0)}th</td></tr>`).join("")}</tbody></table>`;
+}
+
+async function showCompletionCode() {
+  if (classKey !== "monique") return;
+  const card = document.getElementById("completion-card");
+  const code = document.getElementById("completion-code");
+  card.classList.remove("hidden");
+  code.textContent = "Generating…";
+  if (!completionCodePromise) {
+    completionCodePromise = fetch("/api/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ classKey }),
+    }).then(async (response) => {
+      if (!response.ok) throw new Error("completion code failed");
+      return (await response.json()).code;
+    });
+  }
+  try {
+    code.textContent = await completionCodePromise;
+  } catch {
+    code.textContent = "Unavailable";
+  }
 }
 
 async function saveAnswers(result) {
@@ -142,12 +175,16 @@ document.getElementById("show-results").addEventListener("click", async () => {
   const result = calculatePps(answers);
   renderResults(result);
   document.getElementById("save-status").classList.add("hidden");
+  document.getElementById("completion-card").classList.add("hidden");
   showScreen("result-screen");
-  if (consent === "yes") await saveAnswers(result);
+  const tasks = [showCompletionCode()];
+  if (consent === "yes") tasks.push(saveAnswers(result));
+  await Promise.allSettled(tasks);
 });
 
 document.getElementById("restart-button").addEventListener("click", () => {
   Object.keys(answers).forEach((key) => delete answers[key]);
+  completionCodePromise = null;
   document.querySelectorAll('input[name="consent"]').forEach((input) => { input.checked = false; });
   showScreen("intro-screen");
 });
