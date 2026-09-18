@@ -1,4 +1,4 @@
-export const APP_VERSION = "pps-cloudflare-3.1.0";
+export const APP_VERSION = "pps-cloudflare-3.2.0";
 
 export const LIKERT_LABELS = [
   "Never",

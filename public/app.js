@@ -4,8 +4,13 @@ const screens = [...document.querySelectorAll(".screen")];
 const answers = {};
 let currentIndex = 0;
 let completionCodePromise = null;
+let feedbackId = crypto.randomUUID();
 
 const classKey = new URLSearchParams(window.location.search).get("class");
+if (classKey === "drudell") {
+  document.getElementById("class-pilot-note").classList.remove("hidden");
+  document.getElementById("class-consent-note").classList.remove("hidden");
+}
 
 const colors = {
   Authoritarian: "#cf664f",
@@ -119,6 +124,7 @@ async function saveAnswers(result) {
         appVersion: APP_VERSION,
         consent: true,
         answers,
+        classKey,
       }),
     });
     if (!response.ok) throw new Error("save failed");
@@ -128,6 +134,41 @@ async function saveAnswers(result) {
   } catch {
     status.classList.add("warning");
     status.textContent = "Your profile was calculated, but the research copy could not be saved. No action is required from you.";
+  }
+}
+
+async function saveClassFeedback(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const feedback = {
+    enjoyment: Number(data.get("enjoyment")),
+    clarity: Number(data.get("clarity")),
+    resultUsefulness: Number(data.get("resultUsefulness")),
+  };
+  const error = document.getElementById("feedback-error");
+  if (Object.values(feedback).some((value) => !Number.isInteger(value) || value < 1 || value > 5)) {
+    error.classList.remove("hidden");
+    return;
+  }
+  error.classList.add("hidden");
+  const button = document.getElementById("feedback-submit");
+  button.disabled = true;
+  button.textContent = "Saving feedback…";
+  try {
+    const response = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ feedbackId, classKey, ...feedback }),
+    });
+    if (!response.ok) throw new Error("feedback save failed");
+    form.classList.add("hidden");
+    await showCompletionCode();
+  } catch {
+    error.textContent = "The feedback could not be saved. Please try again.";
+    error.classList.remove("hidden");
+    button.disabled = false;
+    button.textContent = "Submit feedback and get code →";
   }
 }
 
@@ -186,16 +227,25 @@ document.getElementById("show-results").addEventListener("click", async () => {
   const result = calculatePps(answers);
   renderResults(result);
   document.getElementById("save-status").classList.add("hidden");
+  document.getElementById("class-feedback").classList.toggle("hidden", classKey !== "drudell");
   document.getElementById("completion-card").classList.add("hidden");
   showScreen("result-screen");
-  const tasks = [showCompletionCode()];
+  const tasks = [];
   if (consent === "yes") tasks.push(saveAnswers(result));
   await Promise.allSettled(tasks);
 });
 
+document.getElementById("class-feedback").addEventListener("submit", saveClassFeedback);
+
 document.getElementById("restart-button").addEventListener("click", () => {
   Object.keys(answers).forEach((key) => delete answers[key]);
   completionCodePromise = null;
+  feedbackId = crypto.randomUUID();
+  document.getElementById("class-feedback").reset();
+  document.getElementById("feedback-error").classList.add("hidden");
+  const feedbackButton = document.getElementById("feedback-submit");
+  feedbackButton.disabled = false;
+  feedbackButton.textContent = "Submit feedback and get code →";
   document.querySelectorAll('input[name="consent"]').forEach((input) => { input.checked = false; });
   showScreen("intro-screen");
 });

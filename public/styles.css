@@ -53,6 +53,7 @@ h1 { font-size: clamp(34px, 4.5vw, 54px); max-width: 840px; margin-top: 16px; }
 h2 { font-size: 28px; }
 .lead { max-width: 750px; margin: 26px 0 36px; color: #384945; font-size: clamp(18px, 2.4vw, 23px); }
 .fine-print, .card-note { color: var(--muted); font-size: 14px; }
+.class-pilot-note { max-width:780px;padding:15px 18px;border-left:4px solid var(--gold);border-radius:0 12px 12px 0;background:rgba(255,255,255,.76);color:#40514e; }
 
 .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 38px; }
 .feature { min-height: 120px; display: flex; flex-direction: column; gap: 7px; padding: 22px; background: rgba(255,255,255,.72); border: 1px solid var(--line); border-radius: 18px; }
@@ -113,6 +114,13 @@ input[type="radio"] { width: 19px; height: 19px; margin: 2px 0 0; accent-color: 
 .result-hero p { max-width: 720px; color: var(--muted); font-size: 18px; }
 .status { padding: 14px 18px; border-radius: 12px; margin: 0 0 18px; background: var(--mint); color: var(--green-dark); }
 .status.warning { background: #fff2dc; color: #7c4b0f; }
+.feedback-card { padding:24px;margin:0 0 18px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.94); }
+.feedback-card h2 { margin:7px 0 8px; }
+.feedback-card>p { color:var(--muted); }
+.feedback-grid { display:grid;gap:16px;margin:22px 0; }
+.feedback-grid label { display:grid;gap:7px;font-weight:600; }
+.feedback-grid select { width:100%;min-height:48px;padding:9px 12px;border:1px solid #b9c6c2;border-radius:10px;background:#fff;color:var(--ink);font:inherit; }
+.feedback-grid select:focus-visible { outline:3px solid rgba(21,95,82,.25);outline-offset:3px; }
 .completion-card { display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 24px;margin:0 0 18px;border:1px solid #c6ddd5;border-radius:18px;background:#eef8f4; }
 .completion-card p { margin:5px 0 0;color:var(--muted); }
 .completion-card code { flex:0 0 auto;padding:10px 14px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:20px;font-weight:700;letter-spacing:.08em;color:var(--green-dark); }

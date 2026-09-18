@@ -15,6 +15,14 @@ function isUuid(value) {
     && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+function cohortForClassKey(value) {
+  return value === "drudell" ? "drudell_fall_2026" : null;
+}
+
+function validRating(value) {
+  return Number.isInteger(value) && value >= 1 && value <= 5;
+}
+
 function completionCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const part = () => Array.from(crypto.getRandomValues(new Uint8Array(4)), (value) => alphabet[value % alphabet.length]).join("");
@@ -43,6 +51,39 @@ async function saveCompletion(request, env) {
   return json({ error: "The completion code could not be generated." }, 503);
 }
 
+async function saveFeedback(request, env) {
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "Invalid JSON." }, 400);
+  }
+  const cohortKey = cohortForClassKey(payload?.classKey);
+  if (!cohortKey) return json({ error: "Unknown class." }, 400);
+  if (!isUuid(payload.feedbackId)
+    || !validRating(payload.enjoyment)
+    || !validRating(payload.clarity)
+    || !validRating(payload.resultUsefulness)) {
+    return json({ error: "Invalid feedback." }, 400);
+  }
+  try {
+    const saved = await env.DB.prepare(`
+      INSERT OR IGNORE INTO class_feedback (
+        feedback_id, cohort_key, enjoyment, clarity, result_usefulness
+      ) VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      payload.feedbackId,
+      cohortKey,
+      payload.enjoyment,
+      payload.clarity,
+      payload.resultUsefulness,
+    ).run();
+    return json({ saved: true, duplicate: saved.meta?.changes === 0 });
+  } catch {
+    return json({ error: "The class feedback could not be saved." }, 503);
+  }
+}
+
 async function saveSession(request, env) {
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > 64_000) return json({ error: "Request is too large." }, 413);
@@ -59,12 +100,14 @@ async function saveSession(request, env) {
   if (!validateAnswers(payload.answers)) return json({ error: "Invalid questionnaire answers." }, 400);
 
   const result = calculatePps(payload.answers);
+  const cohortKey = cohortForClassKey(payload.classKey);
   const query = env.DB.prepare(`
     INSERT OR IGNORE INTO pps_sessions (
       session_id, app_version, consented_research, answers_json,
       permissive_mean, authoritative_mean, authoritarian_mean,
-      final_style, z_scores_json, percentiles_json, effective_distances_json
-    ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+      final_style, z_scores_json, percentiles_json, effective_distances_json,
+      cohort_key
+    ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     payload.sessionId,
     APP_VERSION,
@@ -76,6 +119,7 @@ async function saveSession(request, env) {
     JSON.stringify(result.zScores),
     JSON.stringify(result.percentiles),
     JSON.stringify(result.effectiveDistances),
+    cohortKey,
   );
 
   try {
@@ -102,6 +146,9 @@ export default {
     }
     if (url.pathname === "/api/completions" && request.method === "POST") {
       return saveCompletion(request, env);
+    }
+    if (url.pathname === "/api/feedback" && request.method === "POST") {
+      return saveFeedback(request, env);
     }
     if (url.pathname.startsWith("/api/")) return json({ error: "Not found." }, 404);
     return env.ASSETS.fetch(request);
