@@ -1,6 +1,8 @@
 name = "pps-questionnaire"
 main = "src/worker.js"
 compatibility_date = "2026-09-18"
+workers_dev = true
+routes = [{ pattern = "pps.dogperspective.com", custom_domain = true }]
 
 [assets]
 directory = "./public"
