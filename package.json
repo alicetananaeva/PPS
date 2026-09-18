@@ -7,6 +7,7 @@
     "test": "node --test",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:verify": "wrangler deploy --config wrangler.verify.toml",
     "d1:migrate:local": "wrangler d1 migrations apply pps_research --local",
     "d1:migrate:remote": "wrangler d1 migrations apply pps_research --remote"
   },

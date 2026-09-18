@@ -10,6 +10,8 @@ The questionnaire is based on the 36-item Pet Parenting Style scale developed in
 
 Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=drudell). After completion, this link displays a random confirmation code. Codes are stored without questionnaire answers or personal information in the separate `completion_codes` table.
 
+Dr. Udell can verify PPS and DSLQ completion codes at [verify.dogperspective.com](https://verify.dogperspective.com/). The verification page reports only whether a code is valid and which questionnaire it belongs to; it cannot access answers or results.
+
 ## Current architecture
 
 - **Interface:** accessible vanilla HTML, CSS, and JavaScript served by Cloudflare Workers Static Assets

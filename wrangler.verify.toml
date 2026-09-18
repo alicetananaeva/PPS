@@ -1,0 +1,21 @@
+name = "class-completion-verification"
+main = "src/verify-worker.js"
+compatibility_date = "2026-09-18"
+workers_dev = true
+routes = [{ pattern = "verify.dogperspective.com", custom_domain = true }]
+
+[assets]
+directory = "./verify-public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "PPS_DB"
+database_name = "pps_research"
+database_id = "7632e0f5-e1ce-47b0-8b24-9ce5ddd28f6a"
+
+[[d1_databases]]
+binding = "DSLQ_DB"
+database_name = "dslq_research"
+database_id = "7ee34b2d-eee5-432b-9f69-f149f7372d92"
