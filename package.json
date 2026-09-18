@@ -1,0 +1,16 @@
+{
+  "name": "pps-cloudflare",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:migrate:local": "wrangler d1 migrations apply pps_research --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply pps_research --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

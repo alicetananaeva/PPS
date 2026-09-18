@@ -1,113 +1,74 @@
-# Pet Parenting Style (PPS) — Streamlit prototype
+# Pet Parenting Style (PPS)
 
-A research-based web prototype for administering the Pet Parenting Style questionnaire and generating profile-based results for dog guardians.
+A research-based web questionnaire for dog guardians. The app presents 36 items, calculates authoritative, authoritarian, and permissive profile scores, and optionally stores consented responses for research.
 
-The underlying questionnaire is based on the 36-item Pet Parenting Style scale developed in research led by Lauren Brubaker under the supervision of Dr. Monique Udell within the OSU Human–Animal Interaction context. This repository contains Alisa Tananaeva's Streamlit prototype for practical administration, score calculation, and profile visualization.
+The questionnaire is based on the 36-item Pet Parenting Style scale developed in research led by Lauren Brubaker under the supervision of Dr. Monique Udell. This implementation is maintained by Alisa Tananaeva.
 
-`PPS_1.py` presents all 36 items, computes three subscale means (Authoritative, Authoritarian, and Permissive), assigns the most probable parenting style using fixed centroids and bias weights, and reports z-scores and percentiles relative to a 953-dog reference sample.
+## Live app
 
-> **Research prototype** · Python 3.10+ & Streamlit · Functional local demo
+[Open PPS on Cloudflare](https://pps-questionnaire.alicetananaeva.workers.dev/)
 
-[![Made with Streamlit](https://img.shields.io/badge/Made%20with-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://python.org)
+## Current architecture
 
----
+- **Interface:** accessible vanilla HTML, CSS, and JavaScript served by Cloudflare Workers Static Assets
+- **API:** Cloudflare Worker (`src/worker.js`)
+- **Research storage:** Cloudflare D1 (`pps_research`)
+- **Scoring:** shared browser/server module (`public/scoring.js`), so the Worker independently validates and recalculates every submitted result
+- **Consent:** results are shown whether the participant consents or declines; only consented responses are sent to the API
 
-## What this app does
+No always-on server is required, so this version does not depend on Streamlit uptime or a Supabase project remaining active.
 
-- Presents **36 five-point Likert** items (frequency: *Never* … *Always*) to dog guardians.
-- Computes **three subscale means** (12 items each): Permissive, Authoritative, Authoritarian.
-- Assigns a **most probable parenting style** by Euclidean distance from the respondent’s profile and three fixed centroids.
-- Reports **z-scores and approximate percentiles** for each subscale using normative **mean and SD from N = 953** (assumes a normal CDF for percentiles).
-- Shows **Altair** visuals: bar chart of percentiles and a **donut** of model-based similarity (\(\exp(-d_{eff})\) per style).
+## What the app does
 
----
+- Presents 36 five-point Likert items (*Never* through *Always*)
+- Computes three 12-item means: Permissive, Authoritative, and Authoritarian
+- Classifies the closest profile using fixed centroids and bias-weighted Euclidean distance
+- Reports z-scores and approximate percentiles relative to the 953-dog reference sample
+- Shows model-based similarity to each centroid
+- Offers an explicit, optional research-data consent choice before storage
 
-## Features
+## Data storage
 
-| Area | Detail |
-|------|--------|
-| Items | 36 caregiver self-report statements, English |
-| Scales | 12 + 12 + 12 items → three means (1–5) |
-| Classification | Nearest centroid after bias-weighted distance |
-| Norms | Embedded means/SDs (953-dog reference) |
-| Privacy | Session-only; no server-side storage (see [DATA_PRIVACY.md](DATA_PRIVACY.md)) |
-| Data at runtime | **No CSV required** — centroids, \(\beta\)s, and norms are in `PPS_1.py` |
+The `pps_sessions` D1 table contains a random session ID, submission time, app version, the 36 answers, calculated scale means, profile classification, z-scores, percentiles, and effective distances. The app does not request names, email addresses, contact information, or human demographics.
 
----
+See [DATA_PRIVACY.md](DATA_PRIVACY.md) for details.
 
-## Repository layout (high level)
+## Local development
 
-```
-PetParentingPaper/
-├── PPS_1.py              # Main Streamlit app (entry point)
-├── requirements.txt
-├── README.md
-├── DATA_PRIVACY.md
-├── CHANGELOG.md
-└── …                     # Additional folders: supporting research materials
-```
-
-For GitHub visitors, the main entry point is `PPS_1.py`. The rest of the repository contains supporting research materials and earlier project assets.
-
----
-
-## Quick start
+Requires Node.js 20+.
 
 ```bash
-cd PetParentingPaper
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run PPS_1.py
+pnpm install
+pnpm run d1:migrate:local
+pnpm run dev
 ```
 
-Open the local URL (typically `http://localhost:8501`). Answer all items, then click **Compute Style**.
+Run the automated scoring checks with:
 
----
+```bash
+pnpm test
+```
 
-## Scoring logic (summary)
+## Deployment
 
-1. **Likert → numbers:** *Never* = 1 … *Always* = 5.
-2. **Subscale means:** unweighted mean of the 12 items in each subscale.
-3. **Profile vector:** \([M_{perm}, M_{authv}, M_{authn}]\) in that order (matching centroid coordinates in code).
-4. **Distance:** Euclidean distance from the profile to each style’s **centroid** (fixed constants aligned with the original model).
-5. **Bias:** multiply each style’s distance by its \(\beta\) (`BETA_PERM`, `BETA_AUTHV`, `BETA_AUTHN`); smallest **effective** distance wins.
-6. **Normative scores:** z = \((M - \mu) / \sigma\) using embedded \(\mu,\sigma\) per subscale; percentile ≈ \(\Phi(z) \times 100\) (normal approximation).
-7. **Donut “similarity”:** \(\exp(-d_{eff})\) per style (larger = closer to that centroid after bias).
+The D1 binding and deployed database ID are defined in `wrangler.toml`.
 
-Other files in this repository may hold supporting tables or drafts; they are **not** needed to run the Streamlit prototype.
+```bash
+pnpm run d1:migrate:remote
+pnpm run deploy
+```
 
----
+The earlier Streamlit implementation remains in `PPS_1.py` as a reference and rollback option; it is not used by the Cloudflare deployment.
 
-## Tech stack
+## Scoring summary
 
-| Layer | Tool |
-|--------|------|
-| UI | [Streamlit](https://streamlit.io) |
-| Numeric / tables | NumPy, pandas |
-| Charts | [Altair](https://altair-viz.github.io/) |
-
----
-
-## Author
-
-**Alisa Tananaeva**  
-Animal behavior & welfare scientist — [alicetananaeva.com](https://alicetananaeva.com)
-
-The **Pet Parenting Style questionnaire** was developed in the research program described above; this Streamlit implementation is maintained here as a separate, practical layer on top of that work.
-
----
-
-## Project status
-
-- Functional research prototype
-- Main entry point: `PPS_1.py`
-- Local/session-only use in the current version
-- Further interface refinement and interpretation layers may be added later
-
----
+1. Likert responses are coded 1–5.
+2. Each subscale is the unweighted mean of its 12 items.
+3. The profile vector is `[Permissive, Authoritative, Authoritarian]`.
+4. Euclidean distances to the three fixed centroids are multiplied by the original style-specific beta weights.
+5. The smallest effective distance determines the most probable style.
+6. Percentiles use the embedded means and standard deviations from the 953-dog reference sample and a normal-CDF approximation.
 
 ## License
 
-Shared for **portfolio and research transparency**. The questionnaire content and scoring logic are tied to ongoing academic work. **Contact the repository maintainer** before reusing items, centroids, or norms in derivative instruments or commercial products.
+Shared for portfolio and research transparency. The questionnaire content and scoring logic are tied to academic work. Contact the repository maintainer before reusing items, centroids, or norms in derivative instruments or commercial products.

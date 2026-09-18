@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A research-based Pet Parenting Style questionnaire for dog guardians.">
+  <title>Pet Parenting Style</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Pet Parenting Style home">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span>Pet Parenting Style</span>
+    </a>
+    <span class="research-label">Research-based questionnaire</span>
+  </header>
+
+  <main id="app" tabindex="-1">
+    <section id="intro-screen" class="screen hero" tabindex="-1">
+      <div class="eyebrow">36 questions · about 6 minutes</div>
+      <h1>How do you relate to your dog?</h1>
+      <p class="lead">This questionnaire describes patterns in how guardians guide, respond to, and spend time with their dogs. There are no “good owner” answers—honest responses produce the most useful profile.</p>
+      <div class="feature-grid" aria-label="Questionnaire information">
+        <div class="feature"><strong>Three dimensions</strong><span>Authoritative, authoritarian, and permissive</span></div>
+        <div class="feature"><strong>Immediate profile</strong><span>Compared with a 953-dog reference sample</span></div>
+        <div class="feature"><strong>Your choice</strong><span>See your result whether or not you share data</span></div>
+      </div>
+      <button id="start-button" class="button primary">Begin questionnaire <span aria-hidden="true">→</span></button>
+      <p class="fine-print">This tool is for education and research. It is not a diagnostic assessment.</p>
+    </section>
+
+    <section id="question-screen" class="screen hidden" aria-labelledby="question-title" tabindex="-1">
+      <div class="progress-meta"><span id="progress-copy">Question 1 of 36</span><span id="answered-copy">0 answered</span></div>
+      <div class="progress-track" aria-hidden="true"><div id="progress-bar"></div></div>
+      <form id="question-form" class="question-card">
+        <div id="question-code" class="eyebrow"></div>
+        <h2 id="question-title"></h2>
+        <fieldset id="answer-options"><legend class="sr-only">Choose how often</legend></fieldset>
+        <p id="question-error" class="error hidden" role="alert">Please choose an answer to continue.</p>
+        <div class="button-row">
+          <button id="back-button" type="button" class="button secondary">← Back</button>
+          <button id="next-button" type="submit" class="button primary">Next →</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="consent-screen" class="screen narrow hidden" aria-labelledby="consent-title" tabindex="-1">
+      <div class="eyebrow">Optional research contribution</div>
+      <h1 id="consent-title">Would you like to share your answers?</h1>
+      <p>Your result does not depend on this choice. If you agree, your questionnaire responses and calculated profile will be stored for future research on human–animal relationships.</p>
+      <div class="privacy-card">
+        <h2>What is—and is not—saved</h2>
+        <ul>
+          <li>Your 36 questionnaire answers and calculated scores</li>
+          <li>A random response ID and submission time</li>
+          <li>No name, email, human demographics, or device identifiers</li>
+        </ul>
+      </div>
+      <fieldset id="consent-options" class="consent-options">
+        <legend class="sr-only">Research data sharing choice</legend>
+        <label><input type="radio" name="consent" value="yes"><span><strong>Yes, share my answers for research</strong><small>I voluntarily agree to storage and future aggregate or de-identified analysis.</small></span></label>
+        <label><input type="radio" name="consent" value="no"><span><strong>No, do not save my answers</strong><small>I will still receive the same profile.</small></span></label>
+      </fieldset>
+      <p id="consent-error" class="error hidden" role="alert">Please select one option.</p>
+      <div class="button-row">
+        <button id="consent-back" class="button secondary">← Back</button>
+        <button id="show-results" class="button primary">Show my profile →</button>
+      </div>
+    </section>
+
+    <section id="result-screen" class="screen hidden" aria-labelledby="result-heading" tabindex="-1">
+      <div class="result-hero">
+        <div class="eyebrow">Your profile</div>
+        <h1 id="result-heading">Most probable style: <span id="result-style"></span></h1>
+        <p>Your profile reflects relative patterns across three dimensions. It is descriptive, not a judgment or diagnosis.</p>
+      </div>
+      <div id="save-status" class="status hidden" role="status"></div>
+      <div class="results-grid">
+        <article class="result-card">
+          <h2>Scale means</h2>
+          <p class="card-note">Average response on a 1–5 scale</p>
+          <div id="means-chart" class="bar-chart"></div>
+        </article>
+        <article class="result-card">
+          <h2>Normative percentiles</h2>
+          <p class="card-note">Compared with the 953-dog reference sample</p>
+          <div id="percentile-chart" class="bar-chart"></div>
+        </article>
+        <article class="result-card similarity-card">
+          <div>
+            <h2>Model-based similarity</h2>
+            <p class="card-note">Relative closeness to each profile centroid</p>
+            <div id="similarity-legend" class="legend"></div>
+          </div>
+          <div id="similarity-donut" class="donut" role="img" aria-label="Style similarity chart"></div>
+        </article>
+      </div>
+      <details class="details">
+        <summary>View statistical details</summary>
+        <div id="stat-details"></div>
+      </details>
+      <button id="restart-button" class="button secondary">Start over</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Pet Parenting Style questionnaire · Human–Animal Interaction research</p>
+    <p>Implementation maintained by Alisa Tananaeva</p>
+  </footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
