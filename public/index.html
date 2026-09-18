@@ -21,16 +21,10 @@
 
   <main id="app" tabindex="-1">
     <section id="intro-screen" class="screen hero" tabindex="-1">
-      <div class="eyebrow">36 questions · about 6 minutes</div>
-      <h1>How do you relate to your dog?</h1>
-      <p class="lead">This questionnaire describes patterns in how guardians guide, respond to, and spend time with their dogs. There are no “good owner” answers—honest responses produce the most useful profile.</p>
-      <div class="feature-grid" aria-label="Questionnaire information">
-        <div class="feature"><strong>Three dimensions</strong><span>Authoritative, authoritarian, and permissive</span></div>
-        <div class="feature"><strong>Immediate profile</strong><span>Compared with a 953-dog reference sample</span></div>
-        <div class="feature"><strong>Your choice</strong><span>See your result whether or not you share data</span></div>
-      </div>
+      <div class="eyebrow">36 questions</div>
+      <h1>Pet Parenting Style</h1>
+      <p class="lead">Please rate how often you engage in each of the following behaviors with your dog. Be as honest as possible in your responses, and feel free to use the full range of the scale provided. There are 36 questions in total.</p>
       <button id="start-button" class="button primary">Begin questionnaire <span aria-hidden="true">→</span></button>
-      <p class="fine-print">This tool is for education and research. It is not a diagnostic assessment.</p>
     </section>
 
     <section id="question-screen" class="screen hidden" aria-labelledby="question-title" tabindex="-1">
@@ -79,28 +73,29 @@
         <p>Your profile reflects relative patterns across three dimensions. It is descriptive, not a judgment or diagnosis.</p>
       </div>
       <div id="save-status" class="status hidden" role="status"></div>
-      <div class="results-grid">
-        <article class="result-card">
-          <h2>Scale means</h2>
-          <p class="card-note">Average response on a 1–5 scale</p>
-          <div id="means-chart" class="bar-chart"></div>
-        </article>
-        <article class="result-card">
-          <h2>Normative percentiles</h2>
-          <p class="card-note">Compared with the 953-dog reference sample</p>
-          <div id="percentile-chart" class="bar-chart"></div>
-        </article>
-        <article class="result-card similarity-card">
-          <div>
-            <h2>Model-based similarity</h2>
-            <p class="card-note">Relative closeness to each profile centroid</p>
-            <div id="similarity-legend" class="legend"></div>
-          </div>
-          <div id="similarity-donut" class="donut" role="img" aria-label="Style similarity chart"></div>
-        </article>
-      </div>
       <details class="details">
-        <summary>View statistical details</summary>
+        <summary>View detailed scores and statistics</summary>
+        <p class="card-note">These measures describe the same profile in different ways. They are provided for detail and are not additional or competing results.</p>
+        <div class="results-grid">
+          <article class="result-card">
+            <h2>Scale means</h2>
+            <p class="card-note">Average response on a 1–5 scale</p>
+            <div id="means-chart" class="bar-chart"></div>
+          </article>
+          <article class="result-card">
+            <h2>Normative percentiles</h2>
+            <p class="card-note">Compared with the 953-dog reference sample</p>
+            <div id="percentile-chart" class="bar-chart"></div>
+          </article>
+          <article class="result-card similarity-card">
+            <div>
+              <h2>Model-based similarity</h2>
+              <p class="card-note">Relative closeness to each profile centroid</p>
+              <div id="similarity-legend" class="legend"></div>
+            </div>
+            <div id="similarity-donut" class="donut" role="img" aria-label="Style similarity chart"></div>
+          </article>
+        </div>
         <div id="stat-details"></div>
       </details>
       <button id="restart-button" class="button secondary">Start over</button>
