@@ -150,20 +150,18 @@ async function saveClassFeedback(event) {
       body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error("feedback save failed");
-    const saved = await response.json();
+    await response.json();
     form.classList.add("hidden");
-    document.getElementById("completion-code").textContent = saved.code;
-    document.getElementById("completion-card").classList.remove("hidden");
-    if (currentConsent) {
-      const status = document.getElementById("save-status");
-      status.className = "status";
-      status.textContent = "Thank you—your questionnaire answers and class feedback were saved.";
-    }
+    const confirmation = document.getElementById("feedback-confirmation");
+    confirmation.textContent = currentConsent
+      ? "Thank you—your questionnaire answers and class feedback were saved."
+      : "Thank you—your class feedback was saved. Your questionnaire answers were not stored.";
+    confirmation.classList.remove("hidden");
   } catch {
     error.textContent = "The feedback could not be saved. Please try again.";
     error.classList.remove("hidden");
     button.disabled = false;
-    button.textContent = "Submit feedback and get code →";
+    button.textContent = "Submit feedback →";
   }
 }
 
@@ -224,7 +222,7 @@ document.getElementById("show-results").addEventListener("click", async () => {
   renderResults(result);
   document.getElementById("save-status").classList.add("hidden");
   document.getElementById("class-feedback").classList.toggle("hidden", classKey !== "drudell");
-  document.getElementById("completion-card").classList.add("hidden");
+  document.getElementById("feedback-confirmation").classList.add("hidden");
   showScreen("result-screen");
   const tasks = [];
   if (classKey !== "drudell" && currentConsent) tasks.push(saveAnswers(result));
@@ -242,7 +240,7 @@ document.getElementById("restart-button").addEventListener("click", () => {
   document.getElementById("feedback-error").classList.add("hidden");
   const feedbackButton = document.getElementById("feedback-submit");
   feedbackButton.disabled = false;
-  feedbackButton.textContent = "Submit feedback and get code →";
+  feedbackButton.textContent = "Submit feedback →";
   document.querySelectorAll('input[name="consent"]').forEach((input) => { input.checked = false; });
   showScreen("intro-screen");
 });

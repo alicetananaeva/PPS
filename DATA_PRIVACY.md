@@ -4,7 +4,7 @@
 
 Participants can complete PPS and receive the same profile whether they agree to research storage or decline. The browser sends a response to the storage API only after an explicit **Yes, share my answers for research** choice.
 
-The Dr. Udell class version also asks three required experience questions after showing the result. These ratings are stored as anonymous class feedback regardless of the research-storage choice and are assigned a random participant code. If the participant consents to research storage, the same code links the feedback to the questionnaire scores. The code is not linked to a name or contact detail unless the participant independently chooses to share it.
+The Dr. Udell class version also asks three required experience questions after showing the result. These ratings are stored regardless of the research-storage choice and are assigned a random internal participant code. If the participant consents to research storage, the same code links the feedback to the questionnaire scores within PPS. The code is not shown to participants or linked to a student name or contact detail. PPS and DSLQ assign separate codes; there is no built-in cross-survey linkage.
 
 ## Data stored with consent
 
