@@ -3,8 +3,9 @@ import { APP_VERSION, ITEM_LIST, ITEM_TEXTS, LIKERT_LABELS, calculatePps } from 
 const screens = [...document.querySelectorAll(".screen")];
 const answers = {};
 let currentIndex = 0;
-let completionCodePromise = null;
 let feedbackId = crypto.randomUUID();
+let sessionId = crypto.randomUUID();
+let currentConsent = false;
 
 const classKey = new URLSearchParams(window.location.search).get("class");
 if (classKey === "drudell") {
@@ -88,29 +89,6 @@ function renderResults(result) {
   document.getElementById("stat-details").innerHTML = `<table><thead><tr><th>Dimension</th><th>Mean</th><th>z-score</th><th>Percentile</th></tr></thead><tbody>${order.map((style) => `<tr><td>${style}</td><td>${result.means[style].toFixed(2)}</td><td>${result.zScores[style].toFixed(2)}</td><td>${result.percentiles[style].toFixed(0)}th</td></tr>`).join("")}</tbody></table>`;
 }
 
-async function showCompletionCode() {
-  if (classKey !== "drudell") return;
-  const card = document.getElementById("completion-card");
-  const code = document.getElementById("completion-code");
-  card.classList.remove("hidden");
-  code.textContent = "Generating…";
-  if (!completionCodePromise) {
-    completionCodePromise = fetch("/api/completions", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ classKey }),
-    }).then(async (response) => {
-      if (!response.ok) throw new Error("completion code failed");
-      return (await response.json()).code;
-    });
-  }
-  try {
-    code.textContent = await completionCodePromise;
-  } catch {
-    code.textContent = "Unavailable";
-  }
-}
-
 async function saveAnswers(result) {
   const status = document.getElementById("save-status");
   status.className = "status";
@@ -120,7 +98,7 @@ async function saveAnswers(result) {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        sessionId: crypto.randomUUID(),
+        sessionId,
         appVersion: APP_VERSION,
         consent: true,
         answers,
@@ -156,14 +134,31 @@ async function saveClassFeedback(event) {
   button.disabled = true;
   button.textContent = "Saving feedback…";
   try {
-    const response = await fetch("/api/feedback", {
+    const payload = {
+      feedbackId,
+      classKey,
+      consent: currentConsent,
+      ...feedback,
+    };
+    if (currentConsent) {
+      payload.sessionId = sessionId;
+      payload.answers = answers;
+    }
+    const response = await fetch("/api/pilot", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ feedbackId, classKey, ...feedback }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error("feedback save failed");
+    const saved = await response.json();
     form.classList.add("hidden");
-    await showCompletionCode();
+    document.getElementById("completion-code").textContent = saved.code;
+    document.getElementById("completion-card").classList.remove("hidden");
+    if (currentConsent) {
+      const status = document.getElementById("save-status");
+      status.className = "status";
+      status.textContent = "Thank you—your questionnaire answers and class feedback were saved.";
+    }
   } catch {
     error.textContent = "The feedback could not be saved. Please try again.";
     error.classList.remove("hidden");
@@ -225,13 +220,14 @@ document.getElementById("show-results").addEventListener("click", async () => {
     return;
   }
   const result = calculatePps(answers);
+  currentConsent = consent === "yes";
   renderResults(result);
   document.getElementById("save-status").classList.add("hidden");
   document.getElementById("class-feedback").classList.toggle("hidden", classKey !== "drudell");
   document.getElementById("completion-card").classList.add("hidden");
   showScreen("result-screen");
   const tasks = [];
-  if (consent === "yes") tasks.push(saveAnswers(result));
+  if (classKey !== "drudell" && currentConsent) tasks.push(saveAnswers(result));
   await Promise.allSettled(tasks);
 });
 
@@ -239,8 +235,9 @@ document.getElementById("class-feedback").addEventListener("submit", saveClassFe
 
 document.getElementById("restart-button").addEventListener("click", () => {
   Object.keys(answers).forEach((key) => delete answers[key]);
-  completionCodePromise = null;
   feedbackId = crypto.randomUUID();
+  sessionId = crypto.randomUUID();
+  currentConsent = false;
   document.getElementById("class-feedback").reset();
   document.getElementById("feedback-error").classList.add("hidden");
   const feedbackButton = document.getElementById("feedback-submit");

@@ -84,6 +84,104 @@ async function saveFeedback(request, env) {
   }
 }
 
+async function savePilot(request, env) {
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 64_000) return json({ error: "Request is too large." }, 413);
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "Invalid JSON." }, 400);
+  }
+
+  const cohortKey = cohortForClassKey(payload?.classKey);
+  if (!cohortKey) return json({ error: "Unknown class." }, 400);
+  if (!isUuid(payload.feedbackId)
+    || !validRating(payload.enjoyment)
+    || !validRating(payload.clarity)
+    || !validRating(payload.resultUsefulness)) {
+    return json({ error: "Invalid feedback." }, 400);
+  }
+
+  const consent = payload.consent === true;
+  let result = null;
+  if (consent) {
+    if (!isUuid(payload.sessionId)) return json({ error: "Invalid session identifier." }, 400);
+    if (!validateAnswers(payload.answers)) return json({ error: "Invalid questionnaire answers." }, 400);
+    result = calculatePps(payload.answers);
+  }
+
+  try {
+    const existing = await env.DB.prepare(
+      "SELECT participant_code FROM class_feedback WHERE feedback_id = ? AND cohort_key = ? LIMIT 1",
+    ).bind(payload.feedbackId, cohortKey).first();
+    if (existing?.participant_code) return json({ saved: true, duplicate: true, code: existing.participant_code, result });
+  } catch {
+    return json({ error: "The class record could not be checked." }, 503);
+  }
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = completionCode();
+    const statements = [
+      env.DB.prepare(
+        "INSERT INTO completion_codes (completion_code, class_key) VALUES (?, ?)",
+      ).bind(code, payload.classKey),
+      env.DB.prepare(`
+        INSERT INTO class_feedback (
+          feedback_id, cohort_key, enjoyment, clarity, result_usefulness, participant_code
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        payload.feedbackId,
+        cohortKey,
+        payload.enjoyment,
+        payload.clarity,
+        payload.resultUsefulness,
+        code,
+      ),
+    ];
+
+    if (consent) {
+      statements.push(env.DB.prepare(`
+        INSERT INTO pps_sessions (
+          session_id, app_version, consented_research, answers_json,
+          permissive_mean, authoritative_mean, authoritarian_mean,
+          final_style, z_scores_json, percentiles_json, effective_distances_json,
+          cohort_key, participant_code
+        ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        payload.sessionId,
+        APP_VERSION,
+        JSON.stringify(payload.answers),
+        result.means.Permissive,
+        result.means.Authoritative,
+        result.means.Authoritarian,
+        result.finalStyle,
+        JSON.stringify(result.zScores),
+        JSON.stringify(result.percentiles),
+        JSON.stringify(result.effectiveDistances),
+        cohortKey,
+        code,
+      ));
+    }
+
+    try {
+      await env.DB.batch(statements);
+      return json({ saved: true, duplicate: false, code, result });
+    } catch {
+      try {
+        const existing = await env.DB.prepare(
+          "SELECT participant_code FROM class_feedback WHERE feedback_id = ? AND cohort_key = ? LIMIT 1",
+        ).bind(payload.feedbackId, cohortKey).first();
+        if (existing?.participant_code) return json({ saved: true, duplicate: true, code: existing.participant_code, result });
+      } catch {
+        return json({ error: "The class record could not be saved." }, 503);
+      }
+    }
+  }
+  return json({ error: "The participant code could not be generated." }, 503);
+}
+
 async function saveSession(request, env) {
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > 64_000) return json({ error: "Request is too large." }, 413);
@@ -149,6 +247,9 @@ export default {
     }
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return saveFeedback(request, env);
+    }
+    if (url.pathname === "/api/pilot" && request.method === "POST") {
+      return savePilot(request, env);
     }
     if (url.pathname.startsWith("/api/")) return json({ error: "Not found." }, 404);
     return env.ASSETS.fetch(request);

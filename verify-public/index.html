@@ -4,25 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Survey completion verification</title>
+  <title>Class pilot dashboard</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main>
-    <section class="card" aria-labelledby="page-title">
-      <p class="eyebrow">Dr. Udell's class</p>
-      <h1 id="page-title">Survey completion verification</h1>
-      <p class="intro">Enter the confirmation code submitted by a student. This page verifies completion only and does not provide access to questionnaire answers or results.</p>
-
-      <form id="verification-form" novalidate>
-        <label for="completion-code">Completion code</label>
+    <section id="login-card" class="card" aria-labelledby="login-title">
+      <p class="eyebrow">Dr. Udell's class · Fall 2026</p>
+      <h1 id="login-title">Class pilot dashboard</h1>
+      <p class="intro">View coded PPS and DSLQ pilot records and download a CSV summary.</p>
+      <form id="login-form">
+        <label for="access-key">Access key</label>
         <div class="form-row">
-          <input id="completion-code" name="completion-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="PPS-ABCD-2345" maxlength="14" required>
-          <button type="submit">Verify</button>
+          <input id="access-key" name="access-key" type="password" autocomplete="current-password" required>
+          <button type="submit">Open dashboard</button>
         </div>
       </form>
+      <p id="login-error" class="message error hidden" role="alert"></p>
+    </section>
 
-      <div id="verification-result" class="result hidden" role="status" aria-live="polite"></div>
+    <section id="dashboard" class="dashboard hidden" aria-labelledby="dashboard-title">
+      <header class="dashboard-header">
+        <div><p class="eyebrow">Dr. Udell's class · Fall 2026</p><h1 id="dashboard-title">Class pilot dashboard</h1></div>
+        <div class="header-actions"><button id="refresh-button" class="secondary" type="button">Refresh</button><button id="logout-button" class="secondary" type="button">Log out</button></div>
+      </header>
+      <div id="summary" class="summary" aria-live="polite"></div>
+      <div class="table-actions"><p>Questionnaire scores appear only when the participant agreed to research storage.</p><button id="download-button" type="button">Download CSV</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Survey</th><th>Submitted</th><th>Research data</th><th>PPS style</th><th>Permissive</th><th>Authoritative</th><th>Authoritarian</th><th>DSLQ score</th><th>Experience</th><th>Clarity</th><th>Result usefulness</th></tr></thead>
+          <tbody id="pilot-rows"></tbody>
+        </table>
+      </div>
+      <p id="dashboard-message" class="message hidden" role="status"></p>
+      <p class="privacy-note">Participant codes are not connected to names unless a student chooses to share their code.</p>
     </section>
   </main>
   <script src="/app.js" defer></script>

@@ -8,9 +8,9 @@ The questionnaire is based on the 36-item Pet Parenting Style scale developed in
 
 [Open PPS on Cloudflare](https://pps.dogperspective.com/)
 
-Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=drudell). Consented questionnaire records receive the cohort label `drudell_fall_2026`. After viewing the result, students complete three required anonymous feedback ratings and receive a random confirmation code. Feedback, completion codes, and questionnaire responses are stored separately and cannot be linked to one another.
+Class link for Dr. Udell's students: [PPS class version](https://pps.dogperspective.com/?class=drudell). After viewing the result, students complete three required anonymous feedback ratings and receive a random participant code. Feedback is always stored with that code. When a student consents to research storage, the questionnaire scores receive the cohort label `drudell_fall_2026` and are linked to the same code. When a student declines, the score fields remain blank and no questionnaire response is stored.
 
-Dr. Udell can verify PPS and DSLQ completion codes at [verify.dogperspective.com](https://verify.dogperspective.com/). The verification page reports only whether a code is valid and which questionnaire it belongs to; it cannot access answers or results.
+The access-key-protected class dashboard at [verify.dogperspective.com](https://verify.dogperspective.com/) lists both surveys by participant code, shows consent status, scores and the three feedback ratings, and can download the table as CSV. It does not show names or narrative result interpretations.
 
 ## Current architecture
 
@@ -33,7 +33,7 @@ No always-on server is required, so this version does not depend on Streamlit up
 
 ## Data storage
 
-The `pps_sessions` D1 table contains a random session ID, submission time, app version, the 36 answers, calculated scale means, profile classification, z-scores, percentiles, effective distances, and an optional cohort label. The app does not request names, email addresses, contact information, or human demographics. Class feedback is stored in `class_feedback`; confirmation codes are stored in `completion_codes`. Neither can be linked to questionnaire responses.
+The `pps_sessions` D1 table contains a random session ID, submission time, app version, the 36 answers, calculated scale means, profile classification, z-scores, percentiles, effective distances, and an optional cohort label. The app does not request names, email addresses, contact information, or human demographics. Class feedback is stored in `class_feedback`; participant codes are stored in `completion_codes`. In the Dr. Udell class version, the participant code links feedback to consented scores. It is not linked to a person's identity unless the participant independently chooses to share the code.
 
 See [DATA_PRIVACY.md](DATA_PRIVACY.md) for details.
 
