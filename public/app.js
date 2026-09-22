@@ -10,9 +10,6 @@ let studentName = "";
 let dogName = "";
 
 const classKey = new URLSearchParams(window.location.search).get("class");
-if (classKey === "drudell") {
-  document.getElementById("class-pilot-note").classList.remove("hidden");
-}
 
 const colors = {
   Authoritarian: "#cf664f",
