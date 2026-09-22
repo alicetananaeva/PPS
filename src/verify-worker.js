@@ -29,33 +29,46 @@ async function readDashboard(request, env) {
   }
 
   try {
-    const [pps, dslq] = await Promise.all([
+    const [pps, dslq, legacyPps, legacyDslq] = await Promise.all([
       env.PPS_DB.prepare(`
-        SELECT c.completion_code AS code, c.created_at AS submitted_at,
-          CASE WHEN s.session_id IS NULL THEN 0 ELSE 1 END AS research_consent,
-          s.final_style, s.permissive_mean, s.authoritative_mean, s.authoritarian_mean,
-          f.enjoyment AS overall_experience, f.clarity, f.result_usefulness
-        FROM completion_codes c
-        JOIN class_feedback f ON f.participant_code = c.completion_code
-        LEFT JOIN pps_sessions s ON s.participant_code = c.completion_code
-        WHERE c.class_key = 'drudell'
-        ORDER BY c.created_at DESC
+        SELECT submission_id, student_name, dog_name, created_at AS submitted_at,
+          answers_json, final_style, permissive_mean, authoritative_mean,
+          authoritarian_mean, overall_experience, clarity, result_usefulness
+        FROM class_submissions WHERE cohort_key = 'drudell_fall_2026'
+        ORDER BY created_at DESC
       `).all(),
       env.DSLQ_DB.prepare(`
-        SELECT c.completion_code AS code, c.created_at AS submitted_at,
-          CASE WHEN s.session_id IS NULL THEN 0 ELSE 1 END AS research_consent,
-          s.dslq_chronic_score,
+        SELECT submission_id, student_name, dog_name, created_at AS submitted_at,
+          dog_sex, behavior_answers_json, health_durations_json, dog_demographics_json,
+          chronic_score AS dslq_chronic_score, interpretation_band,
+          overall_experience, clarity, result_usefulness
+        FROM class_submissions WHERE cohort_key = 'drudell_fall_2026'
+        ORDER BY created_at DESC
+      `).all(),
+      env.PPS_DB.prepare(`
+        SELECT c.completion_code AS submission_id, c.created_at AS submitted_at,
+          s.answers_json, s.final_style, s.permissive_mean, s.authoritative_mean,
+          s.authoritarian_mean, f.enjoyment AS overall_experience, f.clarity,
+          f.result_usefulness
+        FROM completion_codes c JOIN class_feedback f ON f.participant_code = c.completion_code
+        LEFT JOIN pps_sessions s ON s.participant_code = c.completion_code
+        WHERE c.class_key = 'drudell' ORDER BY c.created_at DESC
+      `).all(),
+      env.DSLQ_DB.prepare(`
+        SELECT c.completion_code AS submission_id, c.created_at AS submitted_at,
+          s.dog_sex, s.behavior_answers_json, s.general_health_answers_json,
+          s.dog_demographics_json, s.dslq_chronic_score,
           f.enjoyment AS overall_experience, f.clarity, f.result_usefulness
-        FROM completion_codes c
-        JOIN class_feedback f ON f.participant_code = c.completion_code
+        FROM completion_codes c JOIN class_feedback f ON f.participant_code = c.completion_code
         LEFT JOIN dslq_sessions s ON s.participant_code = c.completion_code
-        WHERE c.class_key = 'drudell'
-        ORDER BY c.created_at DESC
+        WHERE c.class_key = 'drudell' ORDER BY c.created_at DESC
       `).all(),
     ]);
     const ppsRows = (pps.results || []).map((row) => ({ survey: "PPS", ...row }));
     const dslqRows = (dslq.results || []).map((row) => ({ survey: "DSLQ", ...row }));
-    const rows = [...ppsRows, ...dslqRows]
+    const legacyPpsRows = (legacyPps.results || []).map((row) => ({ survey: "PPS", legacy: true, student_name: `Legacy ${row.submission_id}`, dog_name: null, ...row }));
+    const legacyDslqRows = (legacyDslq.results || []).map((row) => ({ survey: "DSLQ", legacy: true, student_name: `Legacy ${row.submission_id}`, dog_name: null, health_durations_json: row.general_health_answers_json, ...row }));
+    const rows = [...ppsRows, ...dslqRows, ...legacyPpsRows, ...legacyDslqRows]
       .sort((a, b) => String(b.submitted_at).localeCompare(String(a.submitted_at)));
     return json({ rows });
   } catch {

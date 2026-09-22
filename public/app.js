@@ -6,11 +6,12 @@ let currentIndex = 0;
 let feedbackId = crypto.randomUUID();
 let sessionId = crypto.randomUUID();
 let currentConsent = false;
+let studentName = "";
+let dogName = "";
 
 const classKey = new URLSearchParams(window.location.search).get("class");
 if (classKey === "drudell") {
   document.getElementById("class-pilot-note").classList.remove("hidden");
-  document.getElementById("class-consent-note").classList.remove("hidden");
 }
 
 const colors = {
@@ -135,16 +136,14 @@ async function saveClassFeedback(event) {
   button.textContent = "Saving feedback…";
   try {
     const payload = {
-      feedbackId,
+      submissionId: feedbackId,
       classKey,
-      consent: currentConsent,
+      studentName,
+      dogName,
+      answers,
       ...feedback,
     };
-    if (currentConsent) {
-      payload.sessionId = sessionId;
-      payload.answers = answers;
-    }
-    const response = await fetch("/api/pilot", {
+    const response = await fetch("/api/class-submissions", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
@@ -153,9 +152,7 @@ async function saveClassFeedback(event) {
     await response.json();
     form.classList.add("hidden");
     const confirmation = document.getElementById("feedback-confirmation");
-    confirmation.textContent = currentConsent
-      ? "Thank you—your questionnaire answers and class feedback were saved."
-      : "Thank you—your class feedback was saved. Your questionnaire answers were not stored.";
+    confirmation.textContent = "Thank you—your questionnaire answers and class feedback were saved for the class exercise.";
     confirmation.classList.remove("hidden");
   } catch {
     error.textContent = "The feedback could not be saved. Please try again.";
@@ -166,6 +163,20 @@ async function saveClassFeedback(event) {
 }
 
 document.getElementById("start-button").addEventListener("click", () => {
+  if (classKey === "drudell") {
+    showScreen("class-info-screen");
+    return;
+  }
+  currentIndex = 0;
+  renderQuestion();
+  showScreen("question-screen");
+});
+
+document.getElementById("class-info-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  studentName = document.getElementById("student-name").value.trim();
+  dogName = document.getElementById("class-dog-name").value.trim();
+  if (!studentName) return;
   currentIndex = 0;
   renderQuestion();
   showScreen("question-screen");
@@ -183,7 +194,13 @@ document.getElementById("question-form").addEventListener("submit", (event) => {
     currentIndex += 1;
     renderQuestion();
   } else {
-    showScreen("consent-screen");
+    if (classKey === "drudell") {
+      renderResults(calculatePps(answers));
+      document.getElementById("save-status").classList.add("hidden");
+      document.getElementById("class-feedback").classList.remove("hidden");
+      document.getElementById("feedback-confirmation").classList.add("hidden");
+      showScreen("result-screen");
+    } else showScreen("consent-screen");
   }
 });
 
@@ -236,6 +253,9 @@ document.getElementById("restart-button").addEventListener("click", () => {
   feedbackId = crypto.randomUUID();
   sessionId = crypto.randomUUID();
   currentConsent = false;
+  studentName = "";
+  dogName = "";
+  document.getElementById("class-info-form").reset();
   document.getElementById("class-feedback").reset();
   document.getElementById("feedback-error").classList.add("hidden");
   const feedbackButton = document.getElementById("feedback-submit");

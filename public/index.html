@@ -23,8 +23,21 @@
       <div class="eyebrow">36 questions</div>
       <h1>Pet Parenting Style</h1>
       <p class="lead">Please rate how often you engage in each of the following behaviors with your dog. Be as honest as possible in your responses, and feel free to use the full range of the scale provided. There are 36 questions in total.</p>
-      <p id="class-pilot-note" class="class-pilot-note hidden">This class version includes three brief required questions about your experience after you view your result.</p>
+      <p id="class-pilot-note" class="class-pilot-note hidden">For Dr. Udell’s class: your name, questionnaire answers, result, and three feedback ratings will be saved for a class exercise and pilot review. Your instructor can see them. This version does not ask for research consent, and these records are kept separate from the research responses.</p>
       <button id="start-button" class="button primary">Begin questionnaire <span aria-hidden="true">→</span></button>
+    </section>
+
+    <section id="class-info-screen" class="screen narrow hidden" tabindex="-1">
+      <div class="eyebrow">Dr. Udell’s class</div>
+      <h1>Before you begin</h1>
+      <p>Enter the same name in both questionnaires so your instructor can match your PPS and DSLQ responses. Your dog’s name is helpful, but optional.</p>
+      <form id="class-info-form" class="feedback-card">
+        <div class="feedback-grid">
+          <label>Your name <input id="student-name" name="studentName" type="text" maxlength="120" autocomplete="name" required></label>
+          <label>Dog’s name (optional) <input id="class-dog-name" name="dogName" type="text" maxlength="120" autocomplete="off"></label>
+        </div>
+        <button class="button primary" type="submit">Continue →</button>
+      </form>
     </section>
 
     <section id="question-screen" class="screen hidden" aria-labelledby="question-title" tabindex="-1">
@@ -46,7 +59,6 @@
       <div class="eyebrow">Optional research contribution</div>
       <h1 id="consent-title">Would you like to share your answers?</h1>
       <p>Your result does not depend on this choice. If you agree, your questionnaire responses and calculated profile will be stored for future research on human–animal relationships.</p>
-      <p id="class-consent-note" class="class-pilot-note hidden">This choice applies only to your questionnaire responses. The three class feedback ratings will be saved either way. If you agree, your questionnaire scores and feedback will be linked by a random identifier that is not tied to your name.</p>
       <div class="privacy-card">
         <h2>What is—and is not—saved</h2>
         <ul>
@@ -76,7 +88,7 @@
       <form id="class-feedback" class="feedback-card hidden">
         <div class="eyebrow">Brief class feedback</div>
         <h2>Tell us about your experience</h2>
-        <p>Please answer these three questions to complete the class pilot. If you agreed to research storage, these ratings will be linked to your questionnaire scores.</p>
+        <p>Please answer these three questions to complete the class exercise. Your responses and questionnaire answers will be available to your instructor.</p>
         <div class="feedback-grid">
           <label>Overall, how would you rate your experience completing this questionnaire?
             <select name="enjoyment" required>

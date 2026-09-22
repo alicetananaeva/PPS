@@ -12,7 +12,7 @@
     <section id="login-card" class="card" aria-labelledby="login-title">
       <p class="eyebrow">Dr. Udell's class · Fall 2026</p>
       <h1 id="login-title">Class pilot dashboard</h1>
-      <p class="intro">View coded PPS and DSLQ pilot records and download a CSV summary.</p>
+      <p class="intro">View named PPS and DSLQ class records and download the full questionnaire answers.</p>
       <form id="login-form">
         <label for="access-key">Access key</label>
         <div class="form-row">
@@ -29,15 +29,15 @@
         <div class="header-actions"><button id="refresh-button" class="secondary" type="button">Refresh</button><button id="logout-button" class="secondary" type="button">Log out</button></div>
       </header>
       <div id="summary" class="summary" aria-live="polite"></div>
-      <div class="table-actions"><p>Questionnaire scores appear only when the participant agreed to research storage.</p><button id="download-button" type="button">Download CSV</button></div>
+      <div class="table-actions"><p>Use the same student name to match the two surveys. Class records are separate from research responses.</p><button id="download-button" type="button">Download summary CSV</button><button id="download-answers-button" type="button">Download full answers CSV</button></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Code</th><th>Survey</th><th>Submitted</th><th>Research data</th><th>PPS style</th><th>Permissive</th><th>Authoritative</th><th>Authoritarian</th><th>DSLQ score</th><th>Experience</th><th>Clarity</th><th>Result usefulness</th></tr></thead>
+          <thead><tr><th>Student</th><th>Dog</th><th>Survey</th><th>Submitted</th><th>PPS style</th><th>Permissive</th><th>Authoritative</th><th>Authoritarian</th><th>DSLQ score</th><th>Experience</th><th>Clarity</th><th>Result usefulness</th></tr></thead>
           <tbody id="pilot-rows"></tbody>
         </table>
       </div>
       <p id="dashboard-message" class="message hidden" role="status"></p>
-      <p class="privacy-note">Participant codes are not connected to names unless a student chooses to share their code.</p>
+      <p class="privacy-note">These named class records are for restricted instructional access. Keep exported files in an approved, access-controlled location.</p>
     </section>
   </main>
   <script src="/app.js" defer></script>

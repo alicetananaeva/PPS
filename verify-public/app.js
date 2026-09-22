@@ -16,20 +16,19 @@ function showDashboard(data) {
   rows = data.rows || [];
   loginCard.classList.add("hidden");
   dashboard.classList.remove("hidden");
-  const consented = rows.filter((row) => row.research_consent === 1).length;
   const pps = rows.filter((row) => row.survey === "PPS").length;
   const dslq = rows.filter((row) => row.survey === "DSLQ").length;
+  const students = new Set(rows.filter((row) => !row.legacy).map((row) => row.student_name.trim().toLocaleLowerCase())).size;
   summaryTarget.innerHTML = `
     <div><strong>${rows.length}</strong><span>Total records</span></div>
-    <div><strong>${consented}</strong><span>Research consent</span></div>
+    <div><strong>${students}</strong><span>Student names</span></div>
     <div><strong>${pps}</strong><span>PPS</span></div>
     <div><strong>${dslq}</strong><span>DSLQ</span></div>`;
   rowsTarget.replaceChildren();
   rows.forEach((row) => {
     const tr = document.createElement("tr");
     [
-      row.code, row.survey, row.submitted_at,
-      row.research_consent === 1 ? "Yes" : "No",
+      row.student_name, valueOrDash(row.dog_name), row.survey, row.submitted_at,
       valueOrDash(row.final_style), valueOrDash(row.permissive_mean, 2),
       valueOrDash(row.authoritative_mean, 2), valueOrDash(row.authoritarian_mean, 2),
       valueOrDash(row.dslq_chronic_score, 2), row.overall_experience,
@@ -89,27 +88,64 @@ document.getElementById("logout-button").addEventListener("click", () => {
   window.location.reload();
 });
 
+function downloadCsv(columns, data, filename) {
+  // Prefix spreadsheet formula characters so student-entered names cannot execute on open.
+  const escape = (value) => {
+    const raw = String(value ?? "");
+    const safe = /^[\s]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+    return `"${safe.replaceAll('"', '""')}"`;
+  };
+  const csv = [
+    columns.map(([, label]) => escape(label)).join(","),
+    ...data.map((row) => columns.map(([key]) => escape(row[key])).join(",")),
+  ].join("\r\n");
+  const link = document.createElement("a");
+  const objectUrl = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+  link.href = objectUrl;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
 document.getElementById("download-button").addEventListener("click", () => {
   const columns = [
-    ["code", "Code"], ["survey", "Survey"], ["submitted_at", "Submitted"],
-    ["research_consent", "Research consent"], ["final_style", "PPS style"],
+    ["student_name", "Student"], ["dog_name", "Dog"], ["survey", "Survey"], ["submitted_at", "Submitted"],
+    ["final_style", "PPS style"],
     ["permissive_mean", "PPS permissive mean"], ["authoritative_mean", "PPS authoritative mean"],
     ["authoritarian_mean", "PPS authoritarian mean"], ["dslq_chronic_score", "DSLQ score"],
     ["overall_experience", "Overall experience"], ["clarity", "Clarity"],
     ["result_usefulness", "Result usefulness"],
   ];
-  const escape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-  const csv = [
-    columns.map(([, label]) => escape(label)).join(","),
-    ...rows.map((row) => columns.map(([key]) => escape(
-      key === "research_consent" ? (row[key] === 1 ? "Yes" : "No") : row[key],
-    )).join(",")),
-  ].join("\r\n");
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  link.download = `drudell-fall-2026-pilot-${new Date().toISOString().slice(0, 10)}.csv`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  downloadCsv(columns, rows, `drudell-class-summary-${new Date().toISOString().slice(0, 10)}.csv`);
+});
+
+function flatten(prefix, value, target) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    Object.entries(value).forEach(([key, child]) => flatten(`${prefix}.${key}`, child, target));
+  } else target[prefix] = Array.isArray(value) ? JSON.stringify(value) : value;
+}
+
+document.getElementById("download-answers-button").addEventListener("click", () => {
+  const data = rows.map((row) => {
+    const output = {
+      student_name: row.student_name, dog_name: row.dog_name, survey: row.survey,
+      submitted_at: row.submitted_at, submission_id: row.submission_id,
+      result: row.survey === "PPS" ? row.final_style : row.dslq_chronic_score,
+      overall_experience: row.overall_experience, clarity: row.clarity,
+      result_usefulness: row.result_usefulness,
+    };
+    if (row.survey === "PPS" && row.answers_json) flatten("answer", JSON.parse(row.answers_json), output);
+    else {
+      output.dog_sex = row.dog_sex;
+      if (row.behavior_answers_json) flatten("behavior", JSON.parse(row.behavior_answers_json), output);
+      if (row.health_durations_json) flatten("health", JSON.parse(row.health_durations_json), output);
+      if (row.dog_demographics_json) flatten("dog_info", JSON.parse(row.dog_demographics_json), output);
+    }
+    return output;
+  });
+  const keys = [...new Set(data.flatMap((row) => Object.keys(row)))];
+  downloadCsv(keys.map((key) => [key, key]), data,
+    `drudell-class-full-answers-${new Date().toISOString().slice(0, 10)}.csv`);
 });
 
 const savedKey = sessionStorage.getItem("pilotDashboardKey");
